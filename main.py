@@ -2,8 +2,7 @@ from config_utils import read_main_config
 from deep_q_network import DeepQNetwork
 from gym_wrapper import GymWrapper
 
-#moshe and omer
-#omer push
+
 from tensorflow.python.framework.ops import disable_eager_execution
 disable_eager_execution()
 

@@ -1,24 +1,20 @@
 general:
   cycles: 10000
-  #cycles: 150
-  episodes_per_training_cycle: 4
+  episodes_per_training_cycle: 5
   episodes_per_test: 100
   max_train_episode_steps: 100
   max_test_episode_steps: 100
-  gamma: 0.99
-  test_frequency: 100
-  completion_reward: 1.
+  gamma: 0.96
+  test_frequency: 1000
+  completion_reward: 0.8
 
 model:
-  replay_buffer_size: 1000000
-  epsilon: 1
+  replay_buffer_size: 1000
+  epsilon: 0.9
   min_epsilon: 0.001
   decrease_epsilon: 0.999
-  batch_size: 32
+  batch_size: 1
   train_steps_per_cycle: 100
 
 policy_network:
-  learn_rate: 0.1
-  tau: 0.95
-  layers: [256, 512]
-  activation: 'relu'
+  learn_rate: 0.81
