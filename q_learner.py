@@ -1,15 +1,10 @@
 import numpy as np
-import tensorflow as tf
-import tensorflow.keras as keras
-import tensorflow.keras.losses as kls
-import tensorflow.keras.optimizers as ko
-import tensorflow.keras.layers as kl
 
 from episode_collector import EpisodeCollector
 from replay_buffer import ReplayBuffer
 
 
-class DeepQNetwork:
+class QLearning:
     def __init__(self, config, gym_wrapper):
         self.config = config
         self.gym_wrapper = gym_wrapper
