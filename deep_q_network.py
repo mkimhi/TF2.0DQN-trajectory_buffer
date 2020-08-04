@@ -16,8 +16,6 @@ class DeepQNetwork:
         env = self.gym_wrapper.get_env()
 
         self.q_table = np.zeros((env.observation_space.n, env.action_space.n))
-        #self.q_model = self._create_net()
-        #self.q_target_model = self._create_net()
         self.replay_buffer = ReplayBuffer(self.config['model']['replay_buffer_size'])
 
     def train(self):
