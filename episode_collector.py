@@ -1,6 +1,5 @@
 import numpy as np
 
-
 class EpisodeCollector:
     def __init__(self, q_table, env, num_actions):
         self.q_table = q_table
@@ -11,7 +10,6 @@ class EpisodeCollector:
         if epsilon > 0. and np.random.uniform() < epsilon:
             action = np.random.choice(self.num_actions)
         else:
-            #state_ = np.expand_dims(np.array(state), 0)
             action_logits = self.q_table[state,:]
             action = np.argmax(action_logits, axis=-1)
         return action

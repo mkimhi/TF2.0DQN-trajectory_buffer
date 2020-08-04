@@ -2,7 +2,6 @@ from config_utils import read_main_config
 from q_learner import QLearning
 from gym_wrapper import GymWrapper
 from tensorflow.python.framework.ops import disable_eager_execution
-
 disable_eager_execution()
 
 config = read_main_config()

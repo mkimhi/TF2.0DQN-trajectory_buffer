@@ -9,7 +9,6 @@ class QLearning:
         self.config = config
         self.gym_wrapper = gym_wrapper
         env = self.gym_wrapper.get_env()
-
         self.q_table = np.zeros((env.observation_space.n, env.action_space.n))
         self.replay_buffer = ReplayBuffer(self.config['model']['replay_buffer_size'])
 
@@ -37,7 +36,6 @@ class QLearning:
                 max_episode_steps, epsilon=epsilon)
             self.replay_buffer.add_episode(states, actions, rewards, is_terminal_flags)
             rewards_per_episode.append(sum(rewards))
-
         avg_rewards = np.mean(rewards_per_episode)
         if (avg_rewards > 0 ):
             print('collected rewards: {}'.format(avg_rewards))
