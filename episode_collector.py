@@ -7,6 +7,7 @@ class EpisodeCollector:
         self.num_actions = num_actions
 
     def _get_action(self, state, epsilon):
+        state=np.concatenate(np.column_stack(state['image']))
         if epsilon > 0. and np.random.uniform() < epsilon:
             action = np.random.choice(self.num_actions)
         else:

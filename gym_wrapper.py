@@ -1,4 +1,5 @@
 import gym
+from gym_minigrid.wrappers import *
 
 class GymWrapper:
     def __init__(self, env_string):
@@ -13,7 +14,7 @@ class GymWrapper:
     def _set_data(self):
         env = self.get_env()
         self._num_actions = env.action_space.n
-        if(self.env_string == 'FrozenLake-v0'):
+        if(self.env_string == 'FrozenLake-v0' or self.env_string == 'MiniGrid-LavaGapS5-v0'):
             self._state_size = (1,)
         else:
             self._state_size = env.observation_space.shape

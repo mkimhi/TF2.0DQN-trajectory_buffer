@@ -9,7 +9,10 @@ class QLearning:
         self.config = config
         self.gym_wrapper = gym_wrapper
         env = self.gym_wrapper.get_env()
-        self.q_table = np.zeros((env.observation_space.n, env.action_space.n))
+        #print("action space is: {0}".format(env.actions))
+        #print("states (ob space) is: {0}".format(env.observation_space))
+        #self.q_table = np.zeros((env.observation_space.n, env.action_space.n))
+        self.q_table = np.zeros((147, env.action_space.n))
         self.replay_buffer = ReplayBuffer(self.config['model']['replay_buffer_size'])
 
     def train(self):
