@@ -18,7 +18,7 @@ class QLearning:
         epsilon = self.config['model']['epsilon']
         episode_collector = EpisodeCollector(self.q_table, env, self.gym_wrapper.get_num_actions())
         for cycle in range(self.config['general']['cycles']):
-            print('cycle {} epsilon {}'.format(cycle, epsilon))
+            #print('cycle {} epsilon {}'.format(cycle, epsilon))
             epsilon, train_avg_reward = self._train_cycle(episode_collector, epsilon)
             if (cycle + 1) % self.config['general']['test_frequency'] == 0 or (completion_reward is not None and train_avg_reward > completion_reward):
                 test_avg_reward = self.test(False)
@@ -37,7 +37,7 @@ class QLearning:
             self.replay_buffer.add_episode(states, actions, rewards, is_terminal_flags)
             rewards_per_episode.append(sum(rewards))
         avg_rewards = np.mean(rewards_per_episode)
-        if (avg_rewards > 0 ):
+        if (avg_rewards > 0.2 ):
             print('collected rewards: {}'.format(avg_rewards))
         epsilon *= self.config['model']['decrease_epsilon']
         epsilon = max(epsilon, self.config['model']['min_epsilon'])

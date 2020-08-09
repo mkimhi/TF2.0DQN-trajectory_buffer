@@ -7,7 +7,7 @@ class ReplayBuffer:
     def __init__(self, buffer_size):
         self.buffer_size = buffer_size
         self.current_size = 0
-        self.buffer = [] #deque() #maybe deque of deque
+        self.buffer = deque()
 
     def add_episode(self, states, actions, rewards, is_terminal):
         # make sure all the sizes match, there is one more state then everything else
@@ -20,7 +20,7 @@ class ReplayBuffer:
         current_sates = states[:-1]
         next_states = states[1:]
         while self.current_size > self.buffer_size:
-            popped_episode = self.buffer.pop(0)
+            popped_episode = self.buffer.popleft()
             self.current_size -= len(popped_episode)
         self.buffer.append(deque())
         self.current_size += len(rewards)

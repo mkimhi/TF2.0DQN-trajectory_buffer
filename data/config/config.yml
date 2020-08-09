@@ -2,5 +2,4 @@ general:
 #  scenario: 'CartPole-v0'
 #  scenario: 'Acrobot-v1'
   scenario: 'FrozenLake-v0'
-#  scenario: 'LL'
 
