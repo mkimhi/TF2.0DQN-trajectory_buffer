@@ -6,7 +6,7 @@ general:
   max_test_episode_steps: 100
   gamma: 0.96
   test_frequency: 1000
-  completion_reward: 0.8
+  completion_reward: 0.9
 
 model:
   replay_buffer_size: 1000

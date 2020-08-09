@@ -12,22 +12,28 @@ class QLearning:
         self.q_table = np.zeros((env.observation_space.n, env.action_space.n))
         self.replay_buffer = ReplayBuffer(self.config['model']['replay_buffer_size'])
 
-    def train(self):
+    def train(self,summaries_collector):
         env = self.gym_wrapper.get_env()
         completion_reward = self.config['general']['completion_reward']
         epsilon = self.config['model']['epsilon']
         episode_collector = EpisodeCollector(self.q_table, env, self.gym_wrapper.get_num_actions())
         for cycle in range(self.config['general']['cycles']):
             #print('cycle {} epsilon {}'.format(cycle, epsilon))
-            epsilon, train_avg_reward = self._train_cycle(episode_collector, epsilon)
+            epsilon, train_avg_reward,cycle_len = self._train_cycle(episode_collector, epsilon)
+
+            #TENSORBOARD
+            summaries_collector.write_train_episode_summaries(cycle, train_avg_reward, cycle_len)
+            #summaries_collector.write_train_optimization_summaries(summaries, global_step)
+
             if (cycle + 1) % self.config['general']['test_frequency'] == 0 or (completion_reward is not None and train_avg_reward > completion_reward):
-                test_avg_reward = self.test(False)
+                test_avg_reward = self.test(True)
                 if completion_reward is not None and test_avg_reward > completion_reward:
                     print('TEST avg reward {} > required reward {}... stopping training'.format(test_avg_reward, completion_reward))
                     break
         env.close()
 
     def _train_cycle(self, episode_collector, epsilon):
+        cycle_len = 0
         # collect data
         max_episode_steps = self.config['general']['max_train_episode_steps']
         rewards_per_episode = []
@@ -35,7 +41,9 @@ class QLearning:
             states, actions, rewards, is_terminal_flags = episode_collector.collect_episode(
                 max_episode_steps, epsilon=epsilon)
             self.replay_buffer.add_episode(states, actions, rewards, is_terminal_flags)
+            #reward_by_len = np.mean(rewards)
             rewards_per_episode.append(sum(rewards))
+            cycle_len += len(actions)
         avg_rewards = np.mean(rewards_per_episode)
         if (avg_rewards > 0.2 ):
             print('collected rewards: {}'.format(avg_rewards))
@@ -45,7 +53,7 @@ class QLearning:
         # train steps
         for _ in range(self.config['model']['train_steps_per_cycle']):
             self._train_step()
-        return epsilon, avg_rewards
+        return epsilon, avg_rewards, cycle_len
 
     def _train_step(self):
         batch_size = self.config['model']['batch_size']
@@ -65,16 +73,20 @@ class QLearning:
 
 
 
-    def test(self, render=True, episodes=None):
+    def test(self,summaries_collector, render=True, episodes=None):
         env = self.gym_wrapper.get_env()
         episode_collector = EpisodeCollector(self.q_table, env, self.gym_wrapper.get_num_actions())
         max_episode_steps = self.config['general']['max_test_episode_steps']
         rewards_per_episode = []
         if episodes is None:
             episodes = self.config['general']['episodes_per_test']
-        for _ in range(episodes):
+        for episode in range(episodes):
             rewards = episode_collector.collect_episode(max_episode_steps, epsilon=0., render=render)[2]
             rewards_per_episode.append(sum(rewards))
+            episode_len = len(rewards)
+            # TENSORBOARD
+            summaries_collector.write_test_episode_summaries(episode, rewards_per_episode, episode_len)
+
         env.close()
         print(self.q_table)
         avg_reward = np.mean(rewards_per_episode)
