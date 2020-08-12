@@ -1,32 +1,44 @@
 import numpy as np
 
 from episode_collector import EpisodeCollector
+from trajectory_replay_buffer import TrajectoryReplayBuffer
 from replay_buffer import ReplayBuffer
 
 
 class QLearning:
-    def __init__(self, config, gym_wrapper):
+    def __init__(self, config, gym_wrapper,trajectory=True):
         self.config = config
         self.gym_wrapper = gym_wrapper
         env = self.gym_wrapper.get_env()
         self.q_table = np.zeros((env.observation_space.n, env.action_space.n))
-        self.replay_buffer = ReplayBuffer(self.config['model']['replay_buffer_size'])
+        buf_size = self.config['model']['replay_buffer_size']
+        self.replay_buffer = TrajectoryReplayBuffer(buf_size) if trajectory else ReplayBuffer(buf_size)
 
     def train(self,summaries_collector):
         env = self.gym_wrapper.get_env()
         completion_reward = self.config['general']['completion_reward']
         epsilon = self.config['model']['epsilon']
         episode_collector = EpisodeCollector(self.q_table, env, self.gym_wrapper.get_num_actions())
+        accumulated_reward = 0
+        avg_episodes_len = 0
         for cycle in range(self.config['general']['cycles']):
             #print('cycle {} epsilon {}'.format(cycle, epsilon))
-            epsilon, train_avg_reward,cycle_len = self._train_cycle(episode_collector, epsilon)
+            epsilon, train_avg_reward,avg_episode_len_per_cycle = self._train_cycle(episode_collector, epsilon)
+            accumulated_reward +=train_avg_reward
+            avg_episodes_len += avg_episode_len_per_cycle
+            #save to csv
+            if (cycle%100 ==0):
+                accumulated_reward = accumulated_reward/100
+                avg_episodes_len = avg_episodes_len/100
+                summaries_collector.write_summaries('train',cycle, accumulated_reward, avg_episodes_len)
+                accumulated_reward = 0
+                avg_episodes_len = 0
 
-            #TENSORBOARD
-            summaries_collector.write_train_episode_summaries(cycle, train_avg_reward, cycle_len)
-            #summaries_collector.write_train_optimization_summaries(summaries, global_step)
-
+            #read once in 1000 episodes and plot into an image
+            if (cycle%1000 ==0):
+                summaries_collector.read_summaries('train')
             if (cycle + 1) % self.config['general']['test_frequency'] == 0 or (completion_reward is not None and train_avg_reward > completion_reward):
-                test_avg_reward = self.test(True)
+                test_avg_reward = self.test(summaries_collector,True)
                 if completion_reward is not None and test_avg_reward > completion_reward:
                     print('TEST avg reward {} > required reward {}... stopping training'.format(test_avg_reward, completion_reward))
                     break
@@ -53,7 +65,8 @@ class QLearning:
         # train steps
         for _ in range(self.config['model']['train_steps_per_cycle']):
             self._train_step()
-        return epsilon, avg_rewards, cycle_len
+        eps_per_cyc = self.config['general']['episodes_per_training_cycle']
+        return epsilon, avg_rewards, cycle_len/eps_per_cyc
 
     def _train_step(self):
         batch_size = self.config['model']['batch_size']
@@ -77,18 +90,19 @@ class QLearning:
         env = self.gym_wrapper.get_env()
         episode_collector = EpisodeCollector(self.q_table, env, self.gym_wrapper.get_num_actions())
         max_episode_steps = self.config['general']['max_test_episode_steps']
-        rewards_per_episode = []
         if episodes is None:
             episodes = self.config['general']['episodes_per_test']
+        avg_episode_len = 0
+        avg_reward = 0
         for episode in range(episodes):
             rewards = episode_collector.collect_episode(max_episode_steps, epsilon=0., render=render)[2]
-            rewards_per_episode.append(sum(rewards))
-            episode_len = len(rewards)
-            # TENSORBOARD
-            summaries_collector.write_test_episode_summaries(episode, rewards_per_episode, episode_len)
+            avg_episode_len += len(rewards)
+            avg_reward += rewards[-1]
+        avg_episode_len = avg_episode_len / episodes
+        avg_reward = avg_reward / episodes
+        summaries_collector.write_summaries('test', episode,avg_reward, avg_episode_len)
 
         env.close()
         print(self.q_table)
-        avg_reward = np.mean(rewards_per_episode)
         print('TEST collected rewards: {}'.format(avg_reward))
         return avg_reward
