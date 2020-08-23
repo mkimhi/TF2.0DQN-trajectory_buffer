@@ -1,20 +1,20 @@
 general:
   cycles: 10000
-  episodes_per_training_cycle: 5
+  episodes_per_training_cycle: 10
   episodes_per_test: 100
-  max_train_episode_steps: 100
-  max_test_episode_steps: 100
-  gamma: 0.96
-  test_frequency: 1000
+  max_train_episode_steps: 200
+  max_test_episode_steps: 200
+  gamma: 0.99
+  test_frequency: 100
   completion_reward: 0.9
 
 model:
   replay_buffer_size: 1000
-  epsilon: 0.9
-  min_epsilon: 0.001
+  epsilon: 1.
+  min_epsilon: 0.01
   decrease_epsilon: 0.999
   batch_size: 1
   train_steps_per_cycle: 100
 
 policy_network:
-  learn_rate: 0.81
+  learn_rate: 0.01 #0.81
