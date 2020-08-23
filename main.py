@@ -7,7 +7,7 @@ from summaries_collector import SummariesCollector
 
 def create_summeries_dir(name):
     working_dir = os.getcwd()
-    return os.path.join(working_dir, name)
+    return os.path.join(working_dir,'data' ,name)
 
 
 if __name__ == '__main__':
@@ -15,8 +15,8 @@ if __name__ == '__main__':
     gym_wrapper = GymWrapper(config['general']['scenario'])
 
 
-    summaries_dir = create_summeries_dir('Frozen_lake_Trajectory_buffer')
-    summaries_collector_nt = SummariesCollector(summaries_dir, config)
+    summaries_dir = create_summeries_dir('summaries')
+    summaries_collector_nt = SummariesCollector(summaries_dir,'Frozen_lake_Trajectory_buffer', config)
     q_learner = QLearning(config, gym_wrapper,trajectory = True)
     initial_time = round(time(), 3)
     q_learner.train(summaries_collector_nt)
@@ -25,8 +25,8 @@ if __name__ == '__main__':
     total_time_traj = round(time(),3)-initial_time
     print("total train and test time for trajectory replay buffer: {0} seconds".format(total_time_traj))
 
-    summaries_dir = create_summeries_dir('Frozen_lake_Regular_buffer')
-    summaries_collector = SummariesCollector(summaries_dir, config)
+    summaries_dir = create_summeries_dir('summaries')
+    summaries_collector = SummariesCollector(summaries_dir,'Frozen_lake_Regular_buffer', config)
     q_learner = QLearning(config, gym_wrapper, trajectory=False)
     initial_time = round(time(), 3)
     q_learner.train(summaries_collector)

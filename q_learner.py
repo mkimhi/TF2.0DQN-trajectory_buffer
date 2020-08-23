@@ -39,6 +39,8 @@ class QLearning:
             #read once in 1000 episodes and plot into an image
             if (cycle%1000 ==0):
                 summaries_collector.read_summaries('train')
+                summaries_collector.read_summaries('test')
+
             if (cycle + 1) % self.config['general']['test_frequency'] == 0 or (completion_reward is not None and train_avg_reward > completion_reward):
                 test_avg_reward = self.test(summaries_collector)
                 if completion_reward is not None and test_avg_reward > completion_reward:

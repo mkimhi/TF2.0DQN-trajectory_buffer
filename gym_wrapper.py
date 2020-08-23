@@ -7,7 +7,7 @@ class GymWrapper:
         self._state_size = None
 
     def get_env(self):
-        env = gym.make(self.env_string)
+        env = gym.make(self.env_string,is_slippery=True)
         return env
 
     def _set_data(self):
