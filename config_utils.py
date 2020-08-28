@@ -1,6 +1,9 @@
 import os
 import yaml
 from path_helper import get_config_directory
+from datetime import datetime
+import time
+
 
 def read_main_config():
     main_config = read_config(os.path.join(get_config_directory(), 'config.yml'))
@@ -16,6 +19,12 @@ def read_main_config():
 def read_config(config_path):
     with open(config_path, 'r') as yml_file:
         config = yaml.load(yml_file)
+        working_dir = os.getcwd()
+        os.makedirs(os.path.join(working_dir,'configurations'), exist_ok=True)
+        config_name=datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d_%H-%M') + '-config.yml'
+        config_copy_path = os.path.join(working_dir,'configurations', config_name)
+        yaml.dump(config, open(config_copy_path, 'w'))
+
         print('------------ Config ------------')
         print(yaml.dump(config))
         return config

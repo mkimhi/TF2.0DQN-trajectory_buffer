@@ -22,26 +22,31 @@ class QLearning:
         epsilon = self.config['model']['epsilon']
         episode_collector = EpisodeCollector(self.q_table, env, self.gym_wrapper.get_num_actions())
         accumulated_reward = 0
-        avg_episodes_len = 0
+        accumulated_episodes_len = 0
+        accumulated_loss=0
         for cycle in range(self.config['general']['cycles']):
             #print('cycle {} epsilon {}'.format(cycle, epsilon))
-            epsilon, train_avg_reward,avg_episode_len_per_cycle = self._train_cycle(episode_collector, epsilon)
-            accumulated_reward +=train_avg_reward
-            avg_episodes_len += avg_episode_len_per_cycle
+            #TODO: try both with cycle%100 and direct from train_cycle output and check what's better
+            epsilon, avg_reward_per_cycle,avg_episode_len_per_cycle,avg_loss_per_cycle = self._train_cycle(episode_collector, epsilon)
+            accumulated_reward +=avg_reward_per_cycle
+            accumulated_episodes_len += avg_episode_len_per_cycle
+            accumulated_loss += avg_loss_per_cycle
             #save to csv
             if (cycle%100 ==0):
-                accumulated_reward = accumulated_reward/100
-                avg_episodes_len = avg_episodes_len/100
-                summaries_collector.write_summaries('train',cycle, accumulated_reward, avg_episodes_len)
+                reward = accumulated_reward/100
+                episodes_len = accumulated_episodes_len/100
+                loss = accumulated_loss/100
+                summaries_collector.write_summaries('train',cycle, reward, episodes_len,loss)
                 accumulated_reward = 0
-                avg_episodes_len = 0
+                accumulated_episodes_len = 0
+                accumulated_loss = 0
 
             #read once in 1000 episodes and plot into an image
             if (cycle%1000 ==0):
                 summaries_collector.read_summaries('train')
                 summaries_collector.read_summaries('test')
 
-            if (cycle + 1) % self.config['general']['test_frequency'] == 0 or (completion_reward is not None and train_avg_reward > completion_reward):
+            if (cycle + 1) % self.config['general']['test_frequency'] == 0 or (completion_reward is not None and avg_reward_per_cycle > completion_reward):
                 test_avg_reward = self.test(summaries_collector)
                 if completion_reward is not None and test_avg_reward > completion_reward:
                     print('TEST avg reward {} > required reward {}... stopping training'.format(test_avg_reward, completion_reward))
@@ -66,13 +71,16 @@ class QLearning:
         epsilon *= self.config['model']['decrease_epsilon']
         epsilon = max(epsilon, self.config['model']['min_epsilon'])
 
+        #todo: try to clean the code!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         # train steps
+        cycle_loss = 0
         for _ in range(self.config['model']['train_steps_per_cycle']):
-            self._train_step()
+            cycle_loss+= self._train_step()
         eps_per_cyc = self.config['general']['episodes_per_training_cycle']
-        return epsilon, avg_rewards, cycle_len/eps_per_cyc
+        return epsilon, avg_rewards, cycle_len/eps_per_cyc, cycle_loss/self.config['model']['train_steps_per_cycle']
 
     def _train_step(self):
+        step_loss=0
         batch_size = self.config['model']['batch_size']
         gamma = self.config['general']['gamma']
         lr = self.config['policy_network']['learn_rate']
@@ -87,13 +95,15 @@ class QLearning:
             q_label = np.array(reward[i]) + gamma*(1. - is_terminal[i]) * max_next_q_value
             curr_q_label = self.q_table[current_state[i], chosen_action]
             self.q_table[np.array(current_state),chosen_action] =curr_q_label*(1-lr) + lr* q_label
-            #self.loss.append(np.square(q_label - curr_q_label))
-            #print("loss: ",(np.square(q_label - curr_q_label)))
+            step_loss+=np.square(q_label - curr_q_label)
+            print("step loss: ",step_loss)
+            return step_loss
 
 
 
     def test(self,summaries_collector, render=False, episodes=None):
         self.tests+=1
+
         env = self.gym_wrapper.get_env()
         episode_collector = EpisodeCollector(self.q_table, env, self.gym_wrapper.get_num_actions())
         max_episode_steps = self.config['general']['max_test_episode_steps']
@@ -105,11 +115,25 @@ class QLearning:
             rewards = episode_collector.collect_episode(max_episode_steps, epsilon=0., render=render)[2]
             avg_episode_len += len(rewards)
             avg_reward += rewards[-1]
+            calc_loss(states, actions, rewards, is_terminal, self.config['general']['gamma'])
+
         avg_episode_len = avg_episode_len / episodes
         avg_reward = avg_reward / episodes
+
         summaries_collector.write_summaries('test', self.tests,avg_reward, avg_episode_len)
 
         env.close()
         #print(self.q_table)
         #print('TEST collected rewards: {}'.format(avg_reward))
         return avg_reward
+
+    #NOT TO RUN YET
+    def calc_loss(self,states, actions, rewards, is_terminal, gamma):
+        loss=0
+        for i in range(len(rewards)):
+            q_label = np.array(rewards[i]) + gamma * (1. - is_terminal[i]) * np.max(self.q_table[states[i+1]])
+            loss += np.square(q_label -self.q_table[states[i]][actions[i]])
+        return loss
+
+
+
