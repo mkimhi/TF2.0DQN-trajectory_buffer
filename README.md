@@ -36,14 +36,15 @@ pip3 install -r requirements.txt
 
 
 ## Contributing
-As I used this project to learn how to transition from tf 1.X to 2.X the code could probably be improved.
+First project on TF2.0
 Would be happy to receive PR with style \ syntax \ other scenarios.
 
 As the goal of this project is to implement the simple DQN version, I am not interested in adding more complicated features at the moment.  
 
 ## Authors
 
-* **Tom Jurgenson** - *Initial work* - [github](https://github.com/tomjur)
+* **Tom Jurgenson** - *DDPG initial code* - [github](https://github.com/tomjur)
+* **Moshe Kimhi** - *q learning and DQN, trajectory replay buffer, tests and results* - [github](https://github.com/kimhi1991)
 
 ## License
 
