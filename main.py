@@ -38,7 +38,6 @@ def run_dqn(config,gym_wrapper,summaries_collector,summaries_collector_traj):
     print("tested avg reward: {0} ".format(reward))
 
 if __name__ == '__main__':
-
     config = read_main_config()
     gym_wrapper = GymWrapper(config['general']['scenario'])
     algorithm = config['general']['algorithm']
