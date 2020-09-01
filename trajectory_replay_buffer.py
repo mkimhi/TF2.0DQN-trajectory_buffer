@@ -32,6 +32,8 @@ class episode:
             self.a-=0.1
 """
 
+
+#TODO: add argument param to choose atribute of the buffer
 class TrajectoryReplayBuffer:
     def __init__(self, buffer_size):
         self.buffer_size = buffer_size

@@ -1,5 +1,7 @@
 general:
-#  scenario: 'CartPole-v0'
-#  scenario: 'Acrobot-v1'
-  scenario: 'FrozenLake-v0'
+  #algorithm: 'DQN'
+  algorithm: 'Q-learning'
 
+  #scenario: 'CartPole-v0'
+  #scenario: 'Acrobot-v1'
+  scenario: 'FrozenLake-v0'

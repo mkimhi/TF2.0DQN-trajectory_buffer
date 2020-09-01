@@ -1,16 +1,18 @@
 import numpy as np
 
 class EpisodeCollector:
-    def __init__(self, q_table, env, num_actions):
-        self.q_table = q_table
+    def __init__(self, q_learner, env, num_actions,is_deep=False):
+        self.q_learner = q_learner
         self.env = env
         self.num_actions = num_actions
+        self.is_deep=is_deep
 
     def _get_action(self, state, epsilon):
         if epsilon > 0. and np.random.uniform() < epsilon:
             action = np.random.choice(self.num_actions)
         else:
-            action_logits = self.q_table[state,:]
+            state_ = np.expand_dims(np.array(state), 0)
+            action_logits = self.q_learner.predict(state_)[0] if (self.is_deep) else self.q_learner[state,:]
             action = np.argmax(action_logits, axis=-1)
         return action
 

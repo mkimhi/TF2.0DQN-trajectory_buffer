@@ -7,10 +7,11 @@ import tensorflow.keras.layers as kl
 
 from episode_collector import EpisodeCollector
 from replay_buffer import ReplayBuffer
+from trajectory_replay_buffer import TrajectoryReplayBuffer
 
-
+#TODO: make sure we print the graphs for dqn!!!
 class DeepQNetwork:
-    def __init__(self, config, gym_wrapper):
+    def __init__(self, config, gym_wrapper,trajectory=True):
         self.config = config
         self.gym_wrapper = gym_wrapper
         self.q_model = self._create_net()
@@ -18,7 +19,8 @@ class DeepQNetwork:
         #dot_img_file = './model_1.png'
         #tf.keras.utils.plot_model(self.q_model, to_file=dot_img_file, show_shapes=True)
         self.q_target_model = self._create_net()
-        self.replay_buffer = ReplayBuffer(self.config['model']['replay_buffer_size'])
+        buf_size = self.config['model']['replay_buffer_size']
+        self.replay_buffer = TrajectoryReplayBuffer(buf_size) if trajectory else ReplayBuffer(buf_size)
 
     def _create_net(self):
         activation = self.config['policy_network']['activation']
@@ -62,19 +64,40 @@ class DeepQNetwork:
         result[np.arange(batch_size), action_index] = 1.
         return result
 
-    def train(self):
+    def train(self,summaries_collector):
         env = self.gym_wrapper.get_env()
         #q_table = numpy.zeros((env.observation_space.n, env.action_space.n))
         completion_reward = self.config['general']['completion_reward']
-        episode_collector = EpisodeCollector(self.q_model, env, self.gym_wrapper.get_num_actions())
+        episode_collector = EpisodeCollector(self.q_model, env, self.gym_wrapper.get_num_actions(),is_deep=True)
         epsilon = self.config['model']['epsilon']
+
+        reward = 0
+        episodes_len = 0
+        loss = 0
         for cycle in range(self.config['general']['cycles']):
             print('cycle {} epsilon {}'.format(cycle, epsilon))
-            epsilon, train_avg_reward = self._train_cycle(episode_collector, epsilon)
+            epsilon, cycle_reward, cycle_episode_len, cycle_loss = self._train_cycle(episode_collector, epsilon)#####
+            reward += cycle_reward
+            episodes_len += cycle_episode_len
+            loss += cycle_loss
+            # save to csv
+            if not cycle % 100:
+                loss = loss / 100
+                reward = reward / 100
+                episodes_len = episodes_len / 100
+                summaries_collector.write_summaries('train', cycle, reward, episodes_len, loss)
+                reward = 0
+                episodes_len = 0
+                loss = 0
 
-            if (cycle + 1) % self.config['general']['test_frequency'] == 0 or (completion_reward is not None and train_avg_reward > completion_reward):
+            # read once in 1000 episodes and plot into an image
+            if (cycle % 1000 == 0):
+                summaries_collector.read_summaries('train')
+                summaries_collector.read_summaries('test')
+
+
+            if (cycle + 1) % self.config['general']['test_frequency'] == 0 or (reward > completion_reward):
                 test_avg_reward = self.test(False)
-
                 if completion_reward is not None and test_avg_reward > completion_reward:
                     print('TEST avg reward {} > required reward {}... stopping training'.format(
                         test_avg_reward, completion_reward))
@@ -85,24 +108,28 @@ class DeepQNetwork:
         # collect data
         max_episode_steps = self.config['general']['max_train_episode_steps']
         rewards_per_episode = []
+        cycle_len = 0
         for _ in range(self.config['general']['episodes_per_training_cycle']):
             states, actions, rewards, is_terminal_flags = episode_collector.collect_episode(
                 max_episode_steps, epsilon=epsilon)
             self.replay_buffer.add_episode(states, actions, rewards, is_terminal_flags)
             rewards_per_episode.append(sum(rewards))
+            cycle_len += len(actions)
+
 
         avg_rewards = np.mean(rewards_per_episode)
         print('collected rewards: {}'.format(avg_rewards))
         epsilon *= self.config['model']['decrease_epsilon']
         epsilon = max(epsilon, self.config['model']['min_epsilon'])
-
+        steps = self.config['model']['train_steps_per_cycle']
         # train steps
-        for _ in range(self.config['model']['train_steps_per_cycle']):
-            self._train_step()
-
+        cycle_loss=0
+        for _ in range(steps):
+            cycle_loss +=self._train_step()
         # update target network
         self._update_target()
-        return epsilon, avg_rewards
+        episodes = self.config['general']['episodes_per_training_cycle']
+        return epsilon, avg_rewards, cycle_len/episodes,cycle_loss/steps
 
     def _train_step(self):
         batch_size = self.config['model']['batch_size']
@@ -113,18 +140,37 @@ class DeepQNetwork:
         one_hot_actions = self._one_hot_action(action)
         target_and_actions = np.concatenate((target_labels[:, None], one_hot_actions), axis=1)
         loss = self.q_model.train_on_batch(np.array(current_state), target_and_actions)
+        return loss
 
-    def test(self, render=True, episodes=None):
+    def test(self,summaries_collector, render=True, episodes=None):
+        ##test_on_batch
         env = self.gym_wrapper.get_env()
-        episode_collector = EpisodeCollector(self.q_model, env, self.gym_wrapper.get_num_actions())
+        episode_collector = EpisodeCollector(self.q_model, env, self.gym_wrapper.get_num_actions(),is_deep=True)
         max_episode_steps = self.config['general']['max_test_episode_steps']
-        rewards_per_episode = []
         if episodes is None:
             episodes = self.config['general']['episodes_per_test']
-        for _ in range(episodes):
+        episode_len = 0
+        reward = 0
+        for _ in range(episodes):#TODO: check if can be done in a bach- no for loop
             rewards = episode_collector.collect_episode(max_episode_steps, epsilon=0., render=render)[2]
-            rewards_per_episode.append(sum(rewards))
+            episode_len += len(rewards)
+            reward += rewards[-1]
+
+        #TODO: ask tom: is loss need to be taken from the "collect_episode"-plaing or from buffer
+        ####loss
+        batch_size = self.config['model']['batch_size']
+        current_state, action, reward, next_state, is_terminal = zip(*self.replay_buffer.sample_batch(batch_size))
+        next_q_values = self.q_target_model.predict(np.array(next_state))
+        max_next_q_value = np.max(next_q_values, axis=-1)
+        target_labels = np.array(reward) + (1. - np.array(is_terminal)) * max_next_q_value
+        one_hot_actions = self._one_hot_action(action)
+        target_and_actions = np.concatenate((target_labels[:, None], one_hot_actions), axis=1)
+        loss = self.q_model.test_on_batch(np.array(current_state), target_and_actions)
+        ####end of loss
+
+        episode_len = episode_len / episodes
+        reward = reward / episodes
+        summaries_collector.write_summaries('test', self.tests,reward, episode_len,loss)
         env.close()
-        avg_reward = np.mean(rewards_per_episode)
-        print('TEST collected rewards: {}'.format(avg_reward))
-        return avg_reward
+        #print('TEST collected rewards: {}'.format(avg_reward))
+        return reward

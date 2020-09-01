@@ -17,4 +17,7 @@ model:
   train_steps_per_cycle: 100
 
 policy_network:
-  learn_rate: 0.01 #0.81
+  learn_rate: 0.01 #0.001
+  tau: 0.95
+  layers: [256, 512]
+  activation: 'relu'

@@ -14,13 +14,10 @@ class SummariesCollector:
         self.config= config
         self.completion_reward = self.config['general']['completion_reward']
         self.dir=summaries_dir
-        self.graph_prefix=datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d_%H-%M')
+        self.graph_prefix=config['general']['algorithm']+datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d_%H-%M')
         self.name =name+'_'+ self.graph_prefix+'_'+'.csv'
         self.init_titles()
         self.color = 'b' if (name == "Frozen_lake_Trajectory_buffer") else 'r'
-
-
-
 
     def init_titles(self):
         df = pd.DataFrame({'cycle':[], 'reward': [], 'avg_episode_len': []})
