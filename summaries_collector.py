@@ -11,24 +11,26 @@ import pandas as pd
 
 class SummariesCollector:
     def __init__(self, summaries_dir,name,config):
-        #self.name = name
         self.config= config
         self.completion_reward = self.config['general']['completion_reward']
         self.dir=summaries_dir
-        self.pre_name=name+'_'
-        self.name =name+'_'+ datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d_%H-%M')+'.csv'
+        self.graph_prefix=datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d_%H-%M')
+        self.name =name+'_'+ self.graph_prefix+'_'+'.csv'
         self.init_titles()
+        self.color = 'b' if (name == "Frozen_lake_Trajectory_buffer") else 'r'
+
 
 
 
     def init_titles(self):
         df = pd.DataFrame({'cycle':[], 'reward': [], 'avg_episode_len': []})
+        df2 = pd.DataFrame({'cycle': [], 'reward': [], 'avg_episode_len': [], 'loss': []})
         train_path = os.path.join(self.dir, 'train')
         test_path = os.path.join(self.dir, 'test')
         os.makedirs(train_path, exist_ok=True)
         os.makedirs(test_path, exist_ok=True)
-        df.to_csv(train_path + '\\' + self.name, mode='a', header=True, index=False)
-        df.to_csv(test_path + '\\' + self.name, mode='a', header=True, index=False)
+        df2.to_csv(train_path + '\\' + self.name, mode='a', header=True, index=False)
+        df2.to_csv(test_path + '\\' + self.name, mode='a', header=True, index=False)
 
 
     def write_summaries(self, prefix, cycle_num,reward, avg_episode_len,loss=None):
@@ -41,18 +43,28 @@ class SummariesCollector:
 
     # use once in 1000 episodes
     def read_summaries(self,prefix): #and plot
-        if(prefix == 'train'):
-            fig_idx = 1
-        else:
-            fig_idx = 4
+        fig_idx = 1 if (prefix == 'train') else 4
         df=pd.read_csv(os.path.join(self.dir, prefix,self.name))
         sns.set()
         plt.figure(fig_idx)
         plt.title(prefix + " reward")
         plt.xlabel("LR: " + str(self.config['policy_network']['learn_rate'])+ " gamma: "+str(self.config['general']['gamma']))
-        plt.plot(df.cycle, df.reward)
-        plt.savefig(self.dir +"//"+ self.name+' '+prefix+' reward graph.png')
-        plt.close(fig_idx)
-        #plt.figure(fig_idx+1)
-        #plt.plot(df.cycle, df.avg_episode_len)
-        #plt.savefig(self.name + ' ' + prefix + ' episode len graph.png')
+        plt.plot(df.cycle, df.reward, color=self.color)
+        plt.savefig(self.dir +"//"+ self.graph_prefix+' '+prefix+' reward graph.png')
+        #plt.close(fig_idx)
+
+        plt.figure(fig_idx+1)
+        plt.title(prefix + " avg_episode_len")
+        plt.xlabel("LR: " + str(self.config['policy_network']['learn_rate']) + " gamma: " + str(
+            self.config['general']['gamma']))
+        plt.plot(df.cycle, df.avg_episode_len,color=self.color)
+        plt.savefig(self.dir + "//" + self.graph_prefix + ' ' + prefix + ' episode lenght graph.png')
+        #plt.close(fig_idx+1)
+
+        plt.figure(fig_idx+2)
+        plt.title(prefix + " loss")
+        plt.xlabel("LR: " + str(self.config['policy_network']['learn_rate']) + " gamma: " + str(
+            self.config['general']['gamma']))
+        plt.plot(df.cycle, df.loss,color=self.color)
+        plt.savefig(self.dir + "//" + self.graph_prefix + ' ' + prefix + ' loss graph.png')
+        #plt.close(fig_idx+2)

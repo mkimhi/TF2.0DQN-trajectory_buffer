@@ -25,6 +25,8 @@ if __name__ == '__main__':
     summaries_dir = create_summeries_dir('summaries')
 
     summaries_collector_nt = SummariesCollector(summaries_dir,'Frozen_lake_Trajectory_buffer', config)
+    summaries_collector = SummariesCollector(summaries_dir, 'Frozen_lake_Regular_buffer', config)
+
     q_learner = QLearning(config, gym_wrapper,trajectory = True)
     initial_time = round(time(), 3)
     q_learner.train(summaries_collector_nt)
@@ -34,7 +36,7 @@ if __name__ == '__main__':
     print("total train and test time for trajectory replay buffer: {0} seconds".format(total_time_traj))
 
     #summaries_dir = create_summeries_dir('summaries')
-    summaries_collector = SummariesCollector(summaries_dir,'Frozen_lake_Regular_buffer', config)
+
     q_learner = QLearning(config, gym_wrapper, trajectory=False)
     initial_time = round(time(), 3)
     q_learner.train(summaries_collector)

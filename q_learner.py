@@ -66,7 +66,7 @@ class QLearning:
             rewards_per_episode.append(sum(rewards))
             cycle_len += len(actions)
         avg_rewards = np.mean(rewards_per_episode)
-        if (avg_rewards > 0.5 ):
+        if (avg_rewards > 0.7 ):
             print('collected rewards: {}'.format(avg_rewards))
         epsilon *= self.config['model']['decrease_epsilon']
         epsilon = max(epsilon, self.config['model']['min_epsilon'])
@@ -96,7 +96,7 @@ class QLearning:
             curr_q_label = self.q_table[current_state[i], chosen_action]
             self.q_table[np.array(current_state),chosen_action] =curr_q_label*(1-lr) + lr* q_label
             step_loss+=np.square(q_label - curr_q_label)
-            print("step loss: ",step_loss)
+            #print("step loss: ",step_loss)
             return step_loss
 
 
@@ -115,7 +115,7 @@ class QLearning:
             rewards = episode_collector.collect_episode(max_episode_steps, epsilon=0., render=render)[2]
             avg_episode_len += len(rewards)
             avg_reward += rewards[-1]
-            calc_loss(states, actions, rewards, is_terminal, self.config['general']['gamma'])
+            #self.calc_loss(states, actions, rewards, is_terminal, self.config['general']['gamma'])
 
         avg_episode_len = avg_episode_len / episodes
         avg_reward = avg_reward / episodes
