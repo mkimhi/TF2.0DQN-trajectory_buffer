@@ -7,7 +7,7 @@ from gym_wrapper import GymWrapper
 from summaries_collector import SummariesCollector
 import logging
 
-def run_q_learning(config,gym_wrapper,summaries_collector,summaries_collector_traj):
+def run_q_learning(config,gym_wrapper,summaries_collector_traj,summaries_collector):
     q_learner = QLearning(config, gym_wrapper, trajectory=True)
     initial_time = round(time(), 3)
     q_learner.train(summaries_collector_traj)
@@ -27,14 +27,13 @@ def run_q_learning(config,gym_wrapper,summaries_collector,summaries_collector_tr
     print("total train and test time for no trajectory replay buffer: {0} seconds".format(total_time))
     print("total train and test time for trajectory replay buffer: {0} seconds".format(total_time_traj))
 
-def run_dqn(config,gym_wrapper,summaries_collector,summaries_collector_traj):
+def run_dqn(config,gym_wrapper,summaries_collector_traj,summaries_collector):
     q_network = DeepQNetwork(config, gym_wrapper,trajectory=True)
     initial_time = round(time(), 3)
     q_network.train(summaries_collector_traj)
-    reward = q_network.test(summaries_collector_traj,episodes=50, render=True)
+    reward = q_network.test(summaries_collector_traj,episodes=100, render=True)
     summaries_collector_traj.read_summaries('test')
     total_time_traj = round(time(), 3) - initial_time
-
     print("tested avg reward: {0} ".format(reward))
 
 if __name__ == '__main__':
@@ -42,15 +41,12 @@ if __name__ == '__main__':
     gym_wrapper = GymWrapper(config['general']['scenario'])
     algorithm = config['general']['algorithm']
     summaries_dir = os.path.join(os.getcwd(), 'data', 'summaries')
-    summaries_collector = SummariesCollector(summaries_dir, 'Frozen_lake_Trajectory_buffer', config)
-    summaries_collector_nt = SummariesCollector(summaries_dir, 'Frozen_lake_Regular_buffer', config)
-
+    summaries_collector_traj = SummariesCollector(summaries_dir, 'Frozen_lake_Trajectory_buffer', config)
+    summaries_collector_reg = SummariesCollector(summaries_dir, 'Frozen_lake_Regular_buffer', config)
     if (algorithm == 'DQN'):
-        run_dqn(config,gym_wrapper,summaries_collector,summaries_collector_nt)
+        run_dqn(config,gym_wrapper,summaries_collector_traj,summaries_collector_reg)
     else:
-        run_q_learning(config,gym_wrapper,summaries_collector,summaries_collector_nt)
-
-
+        run_q_learning(config,gym_wrapper,summaries_collector_traj,summaries_collector_reg)
 
     """
     #dump log into a file

@@ -84,7 +84,6 @@ class QLearning:
         lr = self.config['policy_network']['learn_rate']
 
         current_state, action, reward, next_state, is_terminal = zip(*self.replay_buffer.sample_batch(batch_size))
-        #TODO: delete the for in q learner
         for i in range(batch_size):
             next_q_values = self.q_table[next_state[i]]
             max_next_q_value = np.max(next_q_values, axis=-1)

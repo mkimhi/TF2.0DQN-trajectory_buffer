@@ -9,7 +9,6 @@ from episode_collector import EpisodeCollector
 from replay_buffer import ReplayBuffer
 from trajectory_replay_buffer import TrajectoryReplayBuffer
 
-#TODO: make sure we print the graphs for dqn!!!
 class DeepQNetwork:
     def __init__(self, config, gym_wrapper,trajectory=True):
         self.config = config
@@ -151,7 +150,7 @@ class DeepQNetwork:
             episodes = self.config['general']['episodes_per_test']
         episode_len = 0
         reward = 0
-        for _ in range(episodes):#TODO: check if can be done in a bach- no for loop
+        for _ in range(episodes):
             rewards = episode_collector.collect_episode(max_episode_steps, epsilon=0., render=render)[2]
             episode_len += len(rewards)
             reward += rewards[-1]
