@@ -2,7 +2,6 @@ from datetime import datetime
 import time
 import os
 import numpy as np
-import matplotlib
 from matplotlib import pyplot as plt
 import seaborn as sns
 import pandas as pd
@@ -40,13 +39,17 @@ class SummariesCollector:
 
     # use once in 1000 episodes
     def read_summaries(self,prefix): #and plot
+
+        label= 'trajectory' if self.color == 'b' else 'regular'
         fig_idx = 1 if (prefix == 'train') else 4
         df=pd.read_csv(os.path.join(self.dir, prefix,self.name))
         sns.set()
         plt.figure(fig_idx)
         plt.title(prefix + " reward")
         plt.xlabel("LR: " + str(self.config['policy_network']['learn_rate'])+ " gamma: "+str(self.config['general']['gamma']))
-        plt.plot(df.cycle, df.reward, color=self.color)
+        plt.plot(df.cycle, df.reward, color=self.color,label = label)
+
+        #plt.legend()
         plt.savefig(self.dir +"//"+ self.graph_prefix+' '+prefix+' reward graph.png')
         #plt.close(fig_idx)
 
@@ -54,7 +57,8 @@ class SummariesCollector:
         plt.title(prefix + " avg_episode_len")
         plt.xlabel("LR: " + str(self.config['policy_network']['learn_rate']) + " gamma: " + str(
             self.config['general']['gamma']))
-        plt.plot(df.cycle, df.avg_episode_len,color=self.color)
+        plt.plot(df.cycle, df.avg_episode_len,color=self.color,label = label)
+        #plt.legend()
         plt.savefig(self.dir + "//" + self.graph_prefix + ' ' + prefix + ' episode lenght graph.png')
         #plt.close(fig_idx+1)
 
@@ -62,6 +66,7 @@ class SummariesCollector:
         plt.title(prefix + " loss")
         plt.xlabel("LR: " + str(self.config['policy_network']['learn_rate']) + " gamma: " + str(
             self.config['general']['gamma']))
-        plt.plot(df.cycle, df.loss,color=self.color)
+        plt.plot(df.cycle, df.loss,color=self.color , label = label)
+        #plt.legend()
         plt.savefig(self.dir + "//" + self.graph_prefix + ' ' + prefix + ' loss graph.png')
         #plt.close(fig_idx+2)

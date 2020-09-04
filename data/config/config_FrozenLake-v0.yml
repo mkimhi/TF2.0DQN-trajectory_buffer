@@ -1,5 +1,5 @@
 general:
-  cycles: 10000
+  cycles: 1000
   episodes_per_training_cycle: 10
   episodes_per_test: 100
   max_train_episode_steps: 200
@@ -13,7 +13,7 @@ model:
   epsilon: 1.
   min_epsilon: 0.01
   decrease_epsilon: 0.999
-  batch_size: 1
+  batch_size: 32
   train_steps_per_cycle: 100
 
 policy_network:

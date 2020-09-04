@@ -1,5 +1,6 @@
 import os
 from time import time
+import numpy as np
 from config_utils import read_main_config
 from q_learner import QLearning
 from deep_q_network import DeepQNetwork
@@ -12,20 +13,24 @@ def run_q_learning(config,gym_wrapper,summaries_collector_traj,summaries_collect
     initial_time = round(time(), 3)
     q_learner.train(summaries_collector_traj)
     trajectory_test_reward = q_learner.test(summaries_collector_traj, episodes=100, render=True)
-    summaries_collector_traj.read_summaries('test')
     total_time_traj = round(time(), 3) - initial_time
+    summaries_collector_traj.read_summaries('test')
+    q_learner.loss_evaluation()
+
 
     q_learner = QLearning(config, gym_wrapper, trajectory=False)
     initial_time = round(time(), 3)
     q_learner.train(summaries_collector)
     no_trajectory_test_reward = q_learner.test(summaries_collector, episodes=100, render=True)
-    summaries_collector.read_summaries('test')
     total_time = round(time(), 3) - initial_time
+    summaries_collector.read_summaries('test')
+    q_learner.loss_evaluation()
 
     print("tested avg reward with regular buffer: {0}, with trajectory buffer: {1}".format(no_trajectory_test_reward,
                                                                                            trajectory_test_reward))
     print("total train and test time for no trajectory replay buffer: {0} seconds".format(total_time))
     print("total train and test time for trajectory replay buffer: {0} seconds".format(total_time_traj))
+    return trajectory_test_reward,no_trajectory_test_reward
 
 def run_dqn(config,gym_wrapper,summaries_collector_traj,summaries_collector):
     q_network = DeepQNetwork(config, gym_wrapper,trajectory=True)
@@ -46,8 +51,12 @@ if __name__ == '__main__':
     if (algorithm == 'DQN'):
         run_dqn(config,gym_wrapper,summaries_collector_traj,summaries_collector_reg)
     else:
-        run_q_learning(config,gym_wrapper,summaries_collector_traj,summaries_collector_reg)
-
+        rewards = [[],[]]
+        for i in range(3):
+            trajectory_reward, reg_reward= run_q_learning(config,gym_wrapper,summaries_collector_traj,summaries_collector_reg)
+            rewards[0].append(trajectory_reward)
+            rewards[1].append(reg_reward)
+        print("avg reward for trajectory is: {0}, avg reward without trajectory is: {1}".format(np.mean(rewards[0]),np.mean(rewards[1])))
     """
     #dump log into a file
     logging.basicConfig(level=logging.INFO, format='%(message)s')

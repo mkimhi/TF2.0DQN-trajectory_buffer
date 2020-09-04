@@ -1,6 +1,6 @@
 from collections import deque
 import numpy as np
-import random
+from random import random
 
 
 
@@ -32,13 +32,13 @@ class episode:
             self.a-=0.1
 """
 
-
 #TODO: add argument param to choose atribute of the buffer
 class TrajectoryReplayBuffer:
-    def __init__(self, buffer_size):
+    def __init__(self, buffer_size,traj_ratio):
         self.buffer_size = buffer_size
         self.current_size = 0
         self.buffer = deque()
+        self.traj_ratio = traj_ratio
 
     def add_episode(self, states, actions, rewards, is_terminal):
         # make sure all the sizes match, there is one more state then everything else
@@ -69,8 +69,12 @@ class TrajectoryReplayBuffer:
         batch_size = min([batch_size, self.current_size])
         indexes = np.random.randint(len(self.buffer), size=batch_size)
         batch = []
-        for i in indexes:
-            batch.append(self.buffer[i][-1])
-            self.buffer[i].rotate()
-        #batch = random.sample(len(self.buffer), batch_size)
+        if random()>self.traj_ratio: #regular buffer
+            for i in indexes:
+                episode_len = len(self.buffer[i])
+                batch.append(self.buffer[i][np.random.randint(episode_len)])
+        else: #trajectory
+            for i in indexes:
+                batch.append(self.buffer[i][-1])
+                self.buffer[i].rotate()
         return batch
