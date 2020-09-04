@@ -7,7 +7,7 @@ from matplotlib import pyplot as plt
 import seaborn as sns
 
 class QLearning:
-    def __init__(self, config, gym_wrapper,trajectory=True):
+    def __init__(self, config, gym_wrapper,trajectory_ratio=0):
         self.config = config
         self.gym_wrapper = gym_wrapper
         env = self.gym_wrapper.get_env()
@@ -15,10 +15,8 @@ class QLearning:
         self.map_size=int(np.sqrt(env.observation_space.n))
         self.q_table = np.zeros((env.observation_space.n, env.action_space.n))
         buf_size = self.config['model']['replay_buffer_size']
-        #self.replay_buffer = TrajectoryReplayBuffer(buf_size,1) if trajectory else ReplayBuffer(buf_size)
-        traj_ratio = 1 if trajectory else 0
-        self.replay_buffer = TrajectoryReplayBuffer(buf_size,traj_ratio)
-        self.trajectory = trajectory
+        #self.replay_buffer = TrajectoryReplayBuffer(buf_size,1) if trajectory_ratio==1 else ReplayBuffer(buf_size)
+        self.replay_buffer = TrajectoryReplayBuffer(buf_size,trajectory_ratio)
         self.tests=0
 
     def train(self,summaries_collector):
@@ -133,7 +131,6 @@ class QLearning:
 
 
     def loss_evaluation(self):
-        print(self.map_size)
         rewards= np.zeros((self.map_size,self.map_size))
         rewards[3, 3] = 1
 
@@ -156,11 +153,13 @@ class QLearning:
         avg_loss = [np.mean((losses[1, 0], losses[0, 1])), np.mean((losses[0, 2], losses[2, 0])),
                     np.mean((losses[0, 3], losses[1, 2], losses[2, 1])), np.mean((losses[3, 1], losses[2, 2])),
                     losses[3, 2], losses[3, 3]]
-        plt.figure(self.map_size**2)
+        """
         plt.title(" losses by distance")
         color = 'g' if self.trajectory else 'r'
         plt.plot(np.linspace(1, 6, 6), avg_loss, color=color)
         # plt.legend()
         plt.savefig('Loss by distance.png')
+        """
+        return avg_loss
 
 
