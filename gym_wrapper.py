@@ -5,7 +5,7 @@ class GymWrapper:
         self.env_string = env_string
         self._num_actions = None
         self._state_size = None
-    #todo: map_name - from config
+    #todo: map_name - from config (omer task)
     def get_env(self):
         env = gym.make(self.env_string,map_name="4x4",is_slippery=True)
         return env
