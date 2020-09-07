@@ -131,28 +131,28 @@ class QLearning:
 
 
     def loss_evaluation(self):
-        rewards= np.zeros((self.map_size,self.map_size))
-        rewards[3, 3] = 1
-
-        terminal = np.zeros((self.map_size, self.map_size))
-        terminal[1, 1] = terminal[1, 3] = terminal[2, 3] = terminal[3, 0] = terminal[3,3]=1
 
         gamma = self.config['general']['gamma']
+        if (self.map_size == 4):
+            rewards = np.zeros((self.map_size, self.map_size))
+            rewards[3, 3] = 1
+            terminal = np.zeros((self.map_size, self.map_size))
+            terminal[1, 1] = terminal[1, 3] = terminal[2, 3] = terminal[3, 0] = terminal[3,3]=1
 
-        next_state_vec = np.zeros(self.map_size**2)
-        for i in range(len(next_state_vec)):
-            next_state_vec[i]= np.argmax(self.q_table[i])
+            next_state_vec = np.zeros(self.map_size**2)
+            for i in range(len(next_state_vec)):
+                next_state_vec[i]= np.argmax(self.q_table[i])
 
-        next_state_q_vec = np.zeros(self.map_size**2)
-        for i in range(len(next_state_q_vec)):
-            next_state_q_vec[i] = np.max(self.q_table[int(next_state_vec[i])])
-        next_state_q = next_state_vec.reshape(self.map_size, self.map_size)
+            next_state_q_vec = np.zeros(self.map_size**2)
+            for i in range(len(next_state_q_vec)):
+                next_state_q_vec[i] = np.max(self.q_table[int(next_state_vec[i])])
+            next_state_q = next_state_vec.reshape(self.map_size, self.map_size)
 
-        losses = rewards + gamma*(1-terminal)*next_state_q
+            losses = rewards + gamma*(1-terminal)*next_state_q
 
-        avg_loss = [np.mean((losses[1, 0], losses[0, 1])), np.mean((losses[0, 2], losses[2, 0])),
-                    np.mean((losses[0, 3], losses[1, 2], losses[2, 1])), np.mean((losses[3, 1], losses[2, 2])),
-                    losses[3, 2], losses[3, 3]]
+            avg_loss = [np.mean((losses[1, 0], losses[0, 1])), np.mean((losses[0, 2], losses[2, 0])),
+                        np.mean((losses[0, 3], losses[1, 2], losses[2, 1])), np.mean((losses[3, 1], losses[2, 2])),
+                        losses[3, 2], losses[3, 3]]
         """
         plt.title(" losses by distance")
         color = 'g' if self.trajectory else 'r'

@@ -1,6 +1,6 @@
 from collections import deque
 import numpy as np
-from random import random
+import random
 
 
 
@@ -32,11 +32,11 @@ class episode:
             self.a-=0.1
 """
 
-#TODO: add argument param to choose atribute of the buffer
 class TrajectoryReplayBuffer:
     def __init__(self, buffer_size,traj_ratio):
         self.buffer_size = buffer_size
         self.current_size = 0
+        self.trajectory_buffer = deque()
         self.buffer = deque()
         self.traj_ratio = traj_ratio
 
@@ -51,30 +51,32 @@ class TrajectoryReplayBuffer:
         current_sates = states[:-1]
         next_states = states[1:]
         while self.current_size > self.buffer_size:
-            popped_episode = self.buffer.popleft()
+            popped_episode = self.trajectory_buffer.popleft()
             self.current_size -= len(popped_episode)
-        self.buffer.append(deque())
+        self.trajectory_buffer.append(deque())
         self.current_size += len(rewards)
         # zip and add
         transitions = zip(current_sates, actions, rewards, next_states, is_terminal)
         for t in transitions:
+            self.add_transition_trajectory(t)
             self.add_transition(t)
 
     def add_transition(self, transition):
-        #if self.count() >= self.buffer_size:
-        #    self.buffer.popleft()
-        self.buffer[-1].append(transition)
+        if len(self.buffer) >= self.buffer_size:
+            self.buffer.popleft()
+        self.buffer.append(transition)
+
+    def add_transition_trajectory(self, transition):
+        self.trajectory_buffer[-1].append(transition)
 
     def sample_batch(self, batch_size):
-        batch_size = min([batch_size, self.current_size])
-        indexes = np.random.randint(len(self.buffer), size=batch_size)
-        batch = []
-        if random()>self.traj_ratio: #regular buffer
+        batch_size = min([batch_size, self.current_size,len(self.buffer)])
+        if random.random() > self.traj_ratio:  # regular buffer
+            batch = random.sample(self.buffer, batch_size)
+        else:
+            indexes = np.random.randint(len(self.trajectory_buffer), size=batch_size)
+            batch = []
             for i in indexes:
-                episode_len = len(self.buffer[i])
-                batch.append(self.buffer[i][np.random.randint(episode_len)])
-        else: #trajectory
-            for i in indexes:
-                batch.append(self.buffer[i][-1])
-                self.buffer[i].rotate()
+                batch.append(self.trajectory_buffer[i][-1])
+                self.trajectory_buffer[i].rotate()
         return batch

@@ -12,24 +12,27 @@ from matplotlib import pyplot as plt
 #import logging
 
 def run_q_learning(config,gym_wrapper,summaries_collector_traj,summaries_collector):
+    trajectory_ratio = config['model']['trajectory_ratio']
+    trajectory_ratio_2 = config['model']['trajectory_ratio_2']
+    episodes_per_test = config['general']['episodes_per_test']
     rewards = [[], []]
-    losses = [[],[]]
+    losses = [np.zeros(6),np.zeros(6)]#for 4x4 map
     for _ in range(3):
-        q_learner = QLearning(config, gym_wrapper, trajectory_ratio=1)
+        q_learner = QLearning(config, gym_wrapper, trajectory_ratio=trajectory_ratio)
         initial_time = round(time(), 3)
         q_learner.train(summaries_collector_traj)
-        trajectory_reward = q_learner.test(summaries_collector_traj, episodes=100, render=True)
+        trajectory_reward = q_learner.test(summaries_collector_traj, episodes=episodes_per_test, render=False)
         total_time_traj = round(time(), 3) - initial_time
         summaries_collector_traj.read_summaries('test')
-        losses[0] += q_learner.loss_evaluation()
+        losses[0]=np.add(losses[0], q_learner.loss_evaluation())
 
-        q_learner = QLearning(config, gym_wrapper, trajectory_ratio=0.5)
+        q_learner = QLearning(config, gym_wrapper, trajectory_ratio=trajectory_ratio_2)
         initial_time = round(time(), 3)
         q_learner.train(summaries_collector)
-        no_trajectory_reward = q_learner.test(summaries_collector, episodes=100, render=True)
+        no_trajectory_reward = q_learner.test(summaries_collector, episodes=episodes_per_test, render=False)
         total_time = round(time(), 3) - initial_time
         summaries_collector.read_summaries('test')
-        losses[1] += q_learner.loss_evaluation()
+        losses[1] =np.add(losses[1], q_learner.loss_evaluation())
 
         rewards[0].append(trajectory_reward)
         rewards[1].append(no_trajectory_reward)
@@ -38,14 +41,15 @@ def run_q_learning(config,gym_wrapper,summaries_collector_traj,summaries_collect
                                                                                              trajectory_reward))
         print("total train and test time for no trajectory replay buffer: {0} seconds".format(total_time))
         print("total train and test time for trajectory replay buffer: {0} seconds".format(total_time_traj))
-    print("avg reward for trajectory is: {0}, avg reward without trajectory is: {1}".format(np.mean(rewards[0]),
-                                                                                            np.mean(rewards[1])))
+    print("-----summaries-----")
+    print("avg reward for trajectory ratio {2} is: {0}, avg reward with trajectory ratio {3} is: {1}"
+          .format(np.mean(rewards[0]),np.mean(rewards[1]),trajectory_ratio,trajectory_ratio_2))
+    print("-------------------")
+
+    losses = np.dot(losses,3 ) #avg over the for loop
+    plot_losses(losses)
 
 
-    df=pd.DataFrame({'Trajectory':losses[0],'Regular':losses[1]},columns=['Trajectory','Regular'])
-    plt.figure()
-    df.plot.hist(alpha=0.5)
-    plt.savefig('Loss by distance1.png')
 
 
 def run_dqn(config,gym_wrapper,summaries_collector_traj,summaries_collector):
@@ -56,6 +60,18 @@ def run_dqn(config,gym_wrapper,summaries_collector_traj,summaries_collector):
     summaries_collector_traj.read_summaries('test')
     total_time_traj = round(time(), 3) - initial_time
     print("tested avg reward: {0} ".format(reward))
+
+
+def plot_losses(losses):
+    df = pd.DataFrame({'Trajectory': losses[0], 'Regular': losses[1]}, columns=['Trajectory', 'Regular'])
+    plt.figure()
+    df.plot(kind='bar')
+    plt.savefig('Loss by distance.png')
+    df.plot(kind='pie', subplots=True)
+    plt.savefig('pie losses by distance.png')
+    df.plot(kind='box')
+    plt.savefig('box losses by distance.png')
+
 
 if __name__ == '__main__':
     config = read_main_config()
