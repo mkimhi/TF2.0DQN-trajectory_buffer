@@ -7,7 +7,7 @@ class GymWrapper:
         self._state_size = None
     #todo: map_name - from config (omer task)
     def get_env(self):
-        env = gym.make(self.env_string,map_name="4x4",is_slippery=True)
+        env = gym.make(self.env_string,map_name="8x8",is_slippery=True)
         return env
 
     def _set_data(self):
