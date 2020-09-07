@@ -182,7 +182,6 @@ class QLearning:
                         np.mean((losses[7, 4], losses[6, 5], losses[4, 7])),
                         np.mean((losses[7, 5], losses[5, 7])),
                         np.mean((losses[7, 6], losses[6, 7])),
-
                         ]
         """
         plt.title(" losses by distance")
