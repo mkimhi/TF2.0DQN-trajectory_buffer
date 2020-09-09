@@ -23,7 +23,7 @@ def run_q_learning(config,gym_wrapper,summaries_collector_traj,summaries_collect
         q_learner = QLearning(config, gym_wrapper, trajectory_ratio=trajectory_ratio)
         initial_time = round(time(), 3)
         q_learner.train(summaries_collector_traj)
-        trajectory_reward = q_learner.test(summaries_collector_traj, episodes=episodes_per_test, render=False)
+        trajectory_reward = q_learner.test(summaries_collector_traj, episodes=episodes_per_test*10, render=False)
         total_time_traj = round(time(), 3) - initial_time
         summaries_collector_traj.read_summaries('test')
         losses[0]=np.add(losses[0], q_learner.loss_evaluation())
@@ -31,7 +31,7 @@ def run_q_learning(config,gym_wrapper,summaries_collector_traj,summaries_collect
         q_learner = QLearning(config, gym_wrapper, trajectory_ratio=trajectory_ratio_2)
         initial_time = round(time(), 3)
         q_learner.train(summaries_collector)
-        no_trajectory_reward = q_learner.test(summaries_collector, episodes=episodes_per_test, render=False)
+        no_trajectory_reward = q_learner.test(summaries_collector, episodes=episodes_per_test*10, render=False)
         total_time = round(time(), 3) - initial_time
         summaries_collector.read_summaries('test')
         losses[1] =np.add(losses[1], q_learner.loss_evaluation())

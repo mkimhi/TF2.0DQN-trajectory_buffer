@@ -11,7 +11,6 @@ class QLearning:
         self.config = config
         self.gym_wrapper = gym_wrapper
         env = self.gym_wrapper.get_env()
-
         self.map_size=int(np.sqrt(env.observation_space.n))
         self.q_table = np.zeros((env.observation_space.n, env.action_space.n))
         buf_size = self.config['model']['replay_buffer_size']

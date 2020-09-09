@@ -11,7 +11,7 @@ import pandas as pd
 class SummariesCollector:
     def __init__(self, summaries_dir,name,config):
         self.config= config
-        self.completion_reward = self.config['general']['completion_reward']
+        #self.completion_reward = self.config['general']['completion_reward']
         self.dir=summaries_dir
         self.graph_prefix=config['general']['algorithm']+datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d_%H-%M')
         self.name =name+'_'+ self.graph_prefix+'_'+'.csv'
