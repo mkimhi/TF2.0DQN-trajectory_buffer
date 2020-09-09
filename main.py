@@ -15,9 +15,11 @@ def run_q_learning(config,gym_wrapper,summaries_collector_traj,summaries_collect
     trajectory_ratio = config['model']['trajectory_ratio']
     trajectory_ratio_2 = config['model']['trajectory_ratio_2']
     episodes_per_test = config['general']['episodes_per_test']
+    map_size=config['general']['map_name']
     rewards = [[], []]
-    losses = [np.zeros(6),np.zeros(6)]#for 4x4 map
-    for _ in range(3):
+    losses = [np.zeros(6),np.zeros(6)] if (map_size=='4x4') else [np.zeros(15),np.zeros(15)]
+    bum_to_avg=1
+    for _ in range(bum_to_avg):
         q_learner = QLearning(config, gym_wrapper, trajectory_ratio=trajectory_ratio)
         initial_time = round(time(), 3)
         q_learner.train(summaries_collector_traj)
@@ -46,7 +48,7 @@ def run_q_learning(config,gym_wrapper,summaries_collector_traj,summaries_collect
           .format(np.mean(rewards[0]),np.mean(rewards[1]),trajectory_ratio,trajectory_ratio_2))
     print("-------------------")
 
-    losses = np.dot(losses,3 ) #avg over the for loop
+    losses = np.dot(losses,(1/bum_to_avg) ) #avg over the for loop
     plot_losses(losses)
 
 
@@ -75,7 +77,7 @@ def plot_losses(losses):
 
 if __name__ == '__main__':
     config = read_main_config()
-    gym_wrapper = GymWrapper(config['general']['scenario'])
+    gym_wrapper = GymWrapper(config)
     algorithm = config['general']['algorithm']
     summaries_dir = os.path.join(os.getcwd(), 'data', 'summaries')
     summaries_collector_traj = SummariesCollector(summaries_dir, 'Frozen_lake_Trajectory_buffer', config)

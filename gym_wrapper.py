@@ -1,13 +1,14 @@
 import gym
 
 class GymWrapper:
-    def __init__(self, env_string):
-        self.env_string = env_string
+    def __init__(self, config):
+        self.env_string = config['general']['scenario']
         self._num_actions = None
         self._state_size = None
+        self.map_name=config['general']['map_name']
     #todo: map_name - from config (omer task)
     def get_env(self):
-        env = gym.make(self.env_string,map_name="8x8",is_slippery=True)
+        env = gym.make(self.env_string,map_name=self.map_name,is_slippery=True)
         return env
 
     def _set_data(self):

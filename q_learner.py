@@ -7,7 +7,7 @@ from matplotlib import pyplot as plt
 import seaborn as sns
 
 class QLearning:
-    def __init__(self, config, gym_wrapper,trajectory_ratio=0):
+    def __init__(self, config, gym_wrapper,trajectory_ratio=1):
         self.config = config
         self.gym_wrapper = gym_wrapper
         env = self.gym_wrapper.get_env()
@@ -15,8 +15,10 @@ class QLearning:
         self.map_size=int(np.sqrt(env.observation_space.n))
         self.q_table = np.zeros((env.observation_space.n, env.action_space.n))
         buf_size = self.config['model']['replay_buffer_size']
-        #self.replay_buffer = TrajectoryReplayBuffer(buf_size,1) if trajectory_ratio==1 else ReplayBuffer(buf_size)
-        self.replay_buffer = TrajectoryReplayBuffer(buf_size,trajectory_ratio)
+
+        min_trajectory_ratio= self.config['model']['min_trajectory_ratio']
+        decrease_trajectory_ratio = self.config['model']['decrease_trajectory_ratio']
+        self.replay_buffer = TrajectoryReplayBuffer(buf_size,trajectory_ratio,min_trajectory_ratio,decrease_trajectory_ratio)
         self.tests=0
 
     def train(self,summaries_collector):
@@ -181,7 +183,7 @@ class QLearning:
                         np.mean((losses[5, 5], losses[4, 6], losses[3, 7])),
                         np.mean((losses[7, 4], losses[6, 5], losses[4, 7])),
                         np.mean((losses[7, 5], losses[5, 7])),
-                        np.mean((losses[7, 6], losses[6, 7])),
+                        np.mean((losses[7, 6], losses[6, 7])),losses[7, 7]
                         ]
         """
         plt.title(" losses by distance")
