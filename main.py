@@ -17,8 +17,8 @@ def run_q_learning(config,gym_wrapper,summaries_collector_traj,summaries_collect
     episodes_per_test = config['general']['episodes_per_test']
     map_size=config['general']['map_name']
     rewards = [[], []]
-    losses = [np.zeros(6),np.zeros(6)] if (map_size=='4x4') else [np.zeros(15),np.zeros(15)]
-    bum_to_avg=1
+    losses = [np.zeros(5),np.zeros(5)] if (map_size=='4x4') else [np.zeros(14),np.zeros(14)]
+    bum_to_avg=3
     for _ in range(bum_to_avg):
         q_learner = QLearning(config, gym_wrapper, trajectory_ratio=trajectory_ratio)
         initial_time = round(time(), 3)

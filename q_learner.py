@@ -103,18 +103,21 @@ class QLearning:
         max_episode_steps = self.config['general']['max_test_episode_steps']
         if episodes is None:
             episodes = self.config['general']['episodes_per_test']
+
         episode_len = 0
         reward = 0
+        #loss=0
         for episode in range(episodes):
             rewards = episode_collector.collect_episode(max_episode_steps, epsilon=0., render=render)[2]
             episode_len += len(rewards)
             reward += rewards[-1]
-            #self.calc_loss(states, actions, rewards, is_terminal, self.config['general']['gamma'])
+            #loss += self.calc_loss(states, rewards[-1], is_terminal, self.config['general']['gamma'])
 
         episode_len = episode_len / episodes
         reward = reward / episodes
+        #loss = loss/episodes
 
-        summaries_collector.write_summaries('test', self.tests,reward, episode_len)
+        summaries_collector.write_summaries('test', self.tests,reward, episode_len)#,loss)
 
         env.close()
         #print('TEST collected rewards: {}'.format(avg_reward))
@@ -122,12 +125,12 @@ class QLearning:
 
 
 
-    #NOT TO RUN YET
-    def calc_loss(self,states, actions, rewards, is_terminal, gamma):
+    #todo: ask tom if we are right with the max, or should we sample the buffer for the test loss
+    def calc_loss(self,states, rewards, is_terminal, gamma):
         loss=0
         for i in range(len(rewards)):
             q_label = np.array(rewards[i]) + gamma * (1. - is_terminal[i]) * np.max(self.q_table[states[i+1]])
-            loss += np.square(q_label -self.q_table[states[i]][actions[i]])
+            loss += np.square(q_label -np.max(self.q_table[states[i]]))
         return loss
 
 
@@ -137,7 +140,7 @@ class QLearning:
         rewards = np.zeros((self.map_size, self.map_size))
         rewards[self.map_size -1, self.map_size- 1] = 1
         terminal = np.zeros((self.map_size, self.map_size))
-        if ( self.map_size==4):
+        if ( self.map_size == 4):
 
             terminal[1, 1] = terminal[1, 3] = terminal[2, 3] = terminal[3, 0] = terminal[3,3]=1
 
@@ -150,11 +153,14 @@ class QLearning:
                 next_state_q_vec[i] = np.max(self.q_table[int(next_state_vec[i])])
             next_state_q = next_state_vec.reshape(self.map_size, self.map_size)
 
-            losses = rewards + gamma*(1-terminal)*next_state_q
+            q_label = rewards + gamma*(1-terminal)*next_state_q
+            curr_q_label = np.max(self.q_table,axis=1)
+            losses=np.square(curr_q_label-q_label.flatten())
+            losses=losses.reshape( self.map_size, self.map_size)
 
             avg_loss = [np.mean((losses[1, 0], losses[0, 1])), np.mean((losses[0, 2], losses[2, 0])),
                         np.mean((losses[0, 3], losses[1, 2], losses[2, 1])), np.mean((losses[3, 1], losses[2, 2])),
-                        losses[3, 2], losses[3, 3]]
+                        losses[3, 2]]
         else:
 
             terminal[7, 7] = terminal[2, 3] = terminal[3, 5] = terminal[4, 3] = terminal[5, 1]= terminal[5, 2]=1
@@ -169,7 +175,10 @@ class QLearning:
                 next_state_q_vec[i] = np.max(self.q_table[int(next_state_vec[i])])
             next_state_q = next_state_vec.reshape(self.map_size, self.map_size)
 
-            losses = rewards + gamma * (1 - terminal) * next_state_q
+            q_label = rewards + gamma * (1 - terminal) * next_state_q
+            curr_q_label = np.max(self.q_table,axis=1)
+            losses=np.square(curr_q_label-q_label.flatten())
+            losses=losses.reshape( self.map_size, self.map_size)
 
             avg_loss = [np.mean((losses[1, 0], losses[0, 1])), np.mean((losses[0, 2], losses[2, 0],losses[1,1])),
                         np.mean((losses[0, 3], losses[1, 2], losses[2, 1], losses [3,0])),
@@ -183,8 +192,7 @@ class QLearning:
                         np.mean((losses[5, 5], losses[4, 6], losses[3, 7])),
                         np.mean((losses[7, 4], losses[6, 5], losses[4, 7])),
                         np.mean((losses[7, 5], losses[5, 7])),
-                        np.mean((losses[7, 6], losses[6, 7])),losses[7, 7]
-                        ]
+                        np.mean((losses[7, 6], losses[6, 7]))]
         """
         plt.title(" losses by distance")
         color = 'g' if self.trajectory else 'r'

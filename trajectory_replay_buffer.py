@@ -75,7 +75,6 @@ class TrajectoryReplayBuffer:
         batch_size = min([batch_size, self.current_size,len(self.buffer)])
         if random.random() > self.traj_ratio:  # regular buffer
             batch = random.sample(self.buffer, batch_size)
-            #print("------")
         else:
             updated_ratio = self.traj_ratio * self.decrease_trajectory_ratio
             self.traj_ratio = updated_ratio if (updated_ratio > self.min_traj_ratio) else self.traj_ratio

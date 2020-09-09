@@ -19,14 +19,13 @@ class SummariesCollector:
         self.color = 'b' if (name == "Frozen_lake_Trajectory_buffer") else 'r'
 
     def init_titles(self):
-        df = pd.DataFrame({'cycle':[], 'reward': [], 'avg_episode_len': []})
-        df2 = pd.DataFrame({'cycle': [], 'reward': [], 'avg_episode_len': [], 'loss': []})
+        df = pd.DataFrame({'cycle': [], 'reward': [], 'avg_episode_len': [], 'loss': []})
         train_path = os.path.join(self.dir, 'train')
         test_path = os.path.join(self.dir, 'test')
         os.makedirs(train_path, exist_ok=True)
         os.makedirs(test_path, exist_ok=True)
-        df2.to_csv(train_path + '\\' + self.name, mode='a', header=True, index=False)
-        df2.to_csv(test_path + '\\' + self.name, mode='a', header=True, index=False)
+        df.to_csv(train_path + '/' + self.name, mode='a', header=True, index=False)
+        df.to_csv(test_path + '/' + self.name, mode='a', header=True, index=False)
 
 
     def write_summaries(self, prefix, cycle_num,reward, avg_episode_len,loss=None):
@@ -35,7 +34,7 @@ class SummariesCollector:
         else:
             df = pd.DataFrame(
                 {'cycle': [cycle_num], 'reward': [reward], 'avg_episode_len': [avg_episode_len]})
-        df.to_csv(os.path.join(self.dir,prefix)+'\\'+self.name, mode='a', header=False, index=False) #orgenize
+        df.to_csv(os.path.join(self.dir,prefix)+'/'+self.name, mode='a', header=False, index=False) #orgenize
 
     # use once in 1000 episodes
     def read_summaries(self,prefix): #and plot
