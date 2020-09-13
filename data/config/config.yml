@@ -5,5 +5,5 @@ general:
   #scenario: 'CartPole-v0'
   #scenario: 'Acrobot-v1'
   scenario: 'FrozenLake-v0'
-  #map_name: '4x4'
-  map_name: '8x8'
+  map_name: '4x4'
+  #map_name: '8x8'

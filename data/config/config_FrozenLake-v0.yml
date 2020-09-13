@@ -1,5 +1,5 @@
 general:
-  cycles: 50000
+  cycles: 10000 #60000 #60k for 8x8
   episodes_per_training_cycle: 10
   episodes_per_test: 100
   max_train_episode_steps: 200
@@ -12,21 +12,19 @@ general:
 model:
   trajectory_ratio: 1
   min_trajectory_ratio: 0.5
+  trajectory_ratio_2: 0.5
+  min_trajectory_ratio_2: 0.01
+  decrease_trajectory_ratio:  1
 
-  trajectory_ratio_2: 0.
-  min_trajectory_ratio_2: 0.1
-
-  decrease_trajectory_ratio: 1 #0.99999
-
-  replay_buffer_size: 10000
+  replay_buffer_size: 1000 #10000 #10k for 8x8
   epsilon: 1.
   min_epsilon: 0.01
-  decrease_epsilon: 0.9999
+  decrease_epsilon: 0.999 #0.9999 #for 8x8
   batch_size: 32
   train_steps_per_cycle: 200
 
 policy_network:
-  learn_rate: 0.01 #0.001
+  learn_rate: 0.01
   tau: 0.95
   layers: [256, 512]
   activation: 'relu'
