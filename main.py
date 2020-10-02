@@ -54,15 +54,15 @@ def run_q_learning(config,gym_wrapper,summaries_collector_traj,summaries_collect
 
 
 
-
+#TODO: use summery collector, get trajectory ratio as param, clean again q learning
 def run_dqn(config,gym_wrapper,summaries_collector_traj,summaries_collector):
     q_network = DeepQNetwork(config, gym_wrapper,trajectory=1)
     initial_time = round(time(), 3)
-    q_network.train(summaries_collector_traj)
-    reward = q_network.test(summaries_collector_traj,episodes=100, render=True)
-    summaries_collector_traj.read_summaries('test')
+    q_network.train(summaries_collector)
+    reward = q_network.test(summaries_collector,episodes=10, render=True)
+    summaries_collector.read_summaries('test')
     total_time_traj = round(time(), 3) - initial_time
-    print("tested avg reward: {0} ".format(reward))
+    print("tested avg reward: {0} in: {1}".format(reward,total_time_traj))
 
 
 def plot_losses(losses):

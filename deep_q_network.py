@@ -20,6 +20,7 @@ class DeepQNetwork:
         self.q_target_model = self._create_net()
         buf_size = self.config['model']['replay_buffer_size']
         self.replay_buffer = TrajectoryReplayBuffer(buf_size,trajectory)
+        self.tests = 0
 
     def _create_net(self):
         activation = self.config['policy_network']['activation']
@@ -96,7 +97,7 @@ class DeepQNetwork:
 
 
             if (cycle + 1) % self.config['general']['test_frequency'] == 0 or (reward > completion_reward):
-                test_avg_reward = self.test(False)
+                test_avg_reward = self.test(summaries_collector)
                 if completion_reward is not None and test_avg_reward > completion_reward:
                     print('TEST avg reward {} > required reward {}... stopping training'.format(
                         test_avg_reward, completion_reward))
@@ -141,7 +142,8 @@ class DeepQNetwork:
         loss = self.q_model.train_on_batch(np.array(current_state), target_and_actions)
         return loss
 
-    def test(self,summaries_collector, render=True, episodes=None):
+    def test(self,summaries_collector, render=False, episodes=None):
+        self.tests+=1
         ##test_on_batch
         env = self.gym_wrapper.get_env()
         episode_collector = EpisodeCollector(self.q_model, env, self.gym_wrapper.get_num_actions(),is_deep=True)
@@ -155,21 +157,21 @@ class DeepQNetwork:
             episode_len += len(rewards)
             reward += rewards[-1]
 
-        #TODO: ask tom: is loss need to be taken from the "collect_episode"-plaing or from buffer
-        ####loss
+        #TODO: PROBABLY DELETE
+        """
         batch_size = self.config['model']['batch_size']
-        current_state, action, reward, next_state, is_terminal = zip(*self.replay_buffer.sample_batch(batch_size))
+        current_state, action, los_reward, next_state, is_terminal = zip(*self.replay_buffer.sample_batch(batch_size))
         next_q_values = self.q_target_model.predict(np.array(next_state))
         max_next_q_value = np.max(next_q_values, axis=-1)
-        target_labels = np.array(reward) + (1. - np.array(is_terminal)) * max_next_q_value
+        target_labels = np.array(los_reward) + (1. - np.array(is_terminal)) * max_next_q_value
         one_hot_actions = self._one_hot_action(action)
         target_and_actions = np.concatenate((target_labels[:, None], one_hot_actions), axis=1)
         loss = self.q_model.test_on_batch(np.array(current_state), target_and_actions)
         ####end of loss
-
+        """
         episode_len = episode_len / episodes
         reward = reward / episodes
-        summaries_collector.write_summaries('test', self.tests,reward, episode_len,loss)
+        summaries_collector.write_summaries('test', self.tests,reward, episode_len)
         env.close()
         #print('TEST collected rewards: {}'.format(avg_reward))
         return reward
