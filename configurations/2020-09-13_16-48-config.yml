@@ -1,0 +1,4 @@
+general:
+  algorithm: Q-learning
+  map_name: 4x4
+  scenario: FrozenLake-v0

@@ -1,0 +1,14 @@
+avg_episode_len,cycle,loss,reward
+6.26,1,0.05
+21.35,2,0.18
+17.55,3,0.19
+19.71,4,0.1
+22.27,5,0.24
+30.98,6,0.26
+30.69,7,0.38
+35.53,8,0.41
+39.81,9,0.81
+45.0,10,0.73
+40.468,11,0.727
+avg_episode_len,cycle,loss,reward
+avg_episode_len,cycle,loss,reward
