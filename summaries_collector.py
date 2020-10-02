@@ -38,7 +38,7 @@ class SummariesCollector:
 
     # use once in 1000 episodes
     def read_summaries(self,prefix): #and plot
-
+        """
         label= 'trajectory' if self.color == 'b' else 'regular'
         fig_idx = 1 if (prefix == 'train') else 4
         df=pd.read_csv(os.path.join(self.dir, prefix,self.name))
@@ -69,3 +69,4 @@ class SummariesCollector:
         #plt.legend()
         plt.savefig(self.dir + "//" + self.graph_prefix + ' ' + prefix + ' loss graph.png')
         #plt.close(fig_idx+2)
+        """

@@ -10,7 +10,7 @@ from replay_buffer import ReplayBuffer
 from trajectory_replay_buffer import TrajectoryReplayBuffer
 
 class DeepQNetwork:
-    def __init__(self, config, gym_wrapper,trajectory=True):
+    def __init__(self, config, gym_wrapper,trajectory=1):
         self.config = config
         self.gym_wrapper = gym_wrapper
         self.q_model = self._create_net()
@@ -19,7 +19,7 @@ class DeepQNetwork:
         #tf.keras.utils.plot_model(self.q_model, to_file=dot_img_file, show_shapes=True)
         self.q_target_model = self._create_net()
         buf_size = self.config['model']['replay_buffer_size']
-        self.replay_buffer = TrajectoryReplayBuffer(buf_size) if trajectory else ReplayBuffer(buf_size)
+        self.replay_buffer = TrajectoryReplayBuffer(buf_size,trajectory)
 
     def _create_net(self):
         activation = self.config['policy_network']['activation']

@@ -5,10 +5,11 @@ class GymWrapper:
         self.env_string = config['general']['scenario']
         self._num_actions = None
         self._state_size = None
-        self.map_name=config['general']['map_name']
+        if (self.env_string == 'FrozenLake-v0'):
+            self.map_name=config['general']['map_name']
     #todo: map_name - from config (omer task)
     def get_env(self):
-        env = gym.make(self.env_string,map_name=self.map_name,is_slippery=True)
+        env = gym.make(self.env_string,map_name=self.map_name,is_slippery=True) if(self.env_string == 'FrozenLake-v0') else gym.make(self.env_string)
         return env
 
     def _set_data(self):

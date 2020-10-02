@@ -33,13 +33,12 @@ class episode:
 """
 
 class TrajectoryReplayBuffer:
-    def __init__(self, buffer_size,traj_ratio,min_traj_ratio):#,decrease_trajectory_ratio):
+    def __init__(self, buffer_size,traj_ratio):#,decrease_trajectory_ratio):
         self.buffer_size = buffer_size
         self.current_size = 0
         self.trajectory_buffer = deque()
         self.buffer = deque()
         self.traj_ratio = traj_ratio
-        self.min_traj_ratio=min_traj_ratio
         #self.decrease_trajectory_ratio=decrease_trajectory_ratio
 
     def add_episode(self, states, actions, rewards, is_terminal):
@@ -76,12 +75,6 @@ class TrajectoryReplayBuffer:
         if random.random() > self.traj_ratio:  # regular buffer
             batch = random.sample(self.buffer, batch_size)
         else: #traj buffer
-            """
-            if (random.random() > 0.7):
-                updated_ratio = self.traj_ratio * self.decrease_trajectory_ratio
-                self.traj_ratio = updated_ratio if (updated_ratio < self.min_traj_ratio) else self.traj_ratio
-                #print(self.traj_ratio)
-            """
             indexes = np.random.randint(len(self.trajectory_buffer), size=batch_size)
             batch = []
             for i in indexes:

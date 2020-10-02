@@ -13,6 +13,7 @@ from matplotlib import pyplot as plt
 
 def run_q_learning(config,gym_wrapper,summaries_collector_traj,summaries_collector):
     trajectory_ratio = config['model']['trajectory_ratio']
+
     trajectory_ratio_2 = config['model']['trajectory_ratio_2']
     episodes_per_test = config['general']['episodes_per_test']
     map_size=config['general']['map_name']
