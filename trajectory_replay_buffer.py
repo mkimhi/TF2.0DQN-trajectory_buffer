@@ -39,6 +39,8 @@ class TrajectoryReplayBuffer:
         self.trajectory_buffer = deque()
         self.buffer = deque()
         self.traj_ratio = traj_ratio
+        self.sequence_num = 3
+        self.sequence_counter_list = []
         #self.decrease_trajectory_ratio=decrease_trajectory_ratio
 
     def add_episode(self, states, actions, rewards, is_terminal):
@@ -53,8 +55,11 @@ class TrajectoryReplayBuffer:
         next_states = states[1:]
         while self.current_size > self.buffer_size:
             popped_episode = self.trajectory_buffer.popleft()
+            self.sequence_counter_list.pop(0)
             self.current_size -= len(popped_episode)
         self.trajectory_buffer.append(deque())
+        # for managing the sequence
+        self.sequence_counter_list.append(0)
         self.current_size += len(rewards)
         # zip and add
         transitions = zip(current_sates, actions, rewards, next_states, is_terminal)
@@ -79,6 +84,9 @@ class TrajectoryReplayBuffer:
             batch = []
             for i in indexes:
                 batch.append(self.trajectory_buffer[i][-1])
-                self.trajectory_buffer[i].rotate()
+                self.sequence_counter_list[i]+=1
+                if(self.sequence_counter_list==self.sequence_num):
+                    self.sequence_counter_list[i] = 0
+                    self.trajectory_buffer[i].rotate()
 
         return batch
